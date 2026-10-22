@@ -7,3 +7,5 @@ export function validateLogin(input) {
   }
   return { ok: true };
 }
+
+// demo: tighten boundary validation
