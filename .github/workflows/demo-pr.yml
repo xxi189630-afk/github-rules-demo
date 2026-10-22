@@ -1,0 +1,47 @@
+name: demo-pr
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  statuses: write
+
+jobs:
+  create-demo-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create branch and pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b feature/login
+          printf '\n// demo: tighten boundary validation\n' >> src/auth/login.js
+          git add src/auth/login.js
+          git commit -m "fix: tighten login validation"
+          git push origin feature/login
+          PR_URL=$(gh pr create \
+            --base main \
+            --head feature/login \
+            --title "fix: tighten login validation" \
+            --body "Synthetic demo PR used to capture real GitHub UI screenshots.")
+          echo "$PR_URL"
+          gh pr view "$PR_URL" --json number --jq .number > pr_number.txt
+
+      - name: Publish demo commit statuses
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=$(cat pr_number.txt)
+          SHA=$(gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid)
+          gh api -X POST "repos/${{ github.repository }}/statuses/$SHA" \
+            -f state=success -f context=build -f description="Build passed"
+          gh api -X POST "repos/${{ github.repository }}/statuses/$SHA" \
+            -f state=failure -f context=test -f description="2 failing checks"
