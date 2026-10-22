@@ -22,14 +22,14 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b feature/login
+          git checkout -b feature/codeowner-demo
           printf '\n// demo: tighten boundary validation\n' >> src/auth/login.js
           git add src/auth/login.js
           git commit -m "fix: tighten login validation"
-          git push origin feature/login
+          git push origin feature/codeowner-demo
           PR_URL=$(gh pr create \
             --base main \
-            --head feature/login \
+            --head feature/codeowner-demo \
             --title "fix: tighten login validation" \
             --body "Synthetic demo PR used to capture real GitHub UI screenshots.")
           echo "$PR_URL"
